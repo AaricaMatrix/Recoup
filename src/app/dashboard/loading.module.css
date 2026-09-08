@@ -1,0 +1,42 @@
+/* loading.module.css
+   Reuses --paper / --card / --line from globals.css so the loading state's
+   background matches the real dashboard exactly — no flash-of-wrong-color
+   while page.tsx's data resolves. */
+
+.wrap {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 48px 40px;
+}
+
+.skeletonRow {
+  display: flex;
+  gap: 20px;
+}
+
+.skeletonBox {
+  flex: 1;
+  height: 100px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  /* Simple opacity pulse — deliberately subtle, not a shimmer sweep, so it
+     reads as "loading" without fighting the hand-drawn paper aesthetic. */
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeletonBox {
+    animation: none;
+  }
+}

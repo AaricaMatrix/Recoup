@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Recoup — Audit Explorer</title>
+<link rel="stylesheet" href="shared.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="topnav">
+    <a href="dashboard.html">Overview</a>
+    <a href="risks.html">Risks</a>
+    <a href="recoveries.html">Recoveries</a>
+    <a href="audit.html" class="active">Audit explorer</a>
+  </div>
+
+  <div class="top" style="margin-bottom:28px;padding-bottom:16px;">
+    <div>
+      <div class="brand"><span class="dot"></span><b>Recoup</b> · Audit Explorer</div>
+      <h1 style="font-size:26px;margin:8px 0 4px;">Act on one event at a time</h1>
+      <div class="sub" style="font-size:16px;">
+        diagnose → decide → act, per event — needs <code>python api_server.py</code> running
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" style="margin-bottom:20px;">
+    <div class="controls" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+      <div class="filters" id="type-filters"></div>
+      <div class="search"><input id="search-box" placeholder="search event id…"></div>
+    </div>
+  </div>
+
+  <div class="panel ledger">
+    <div class="scrollbox" style="max-height:70vh;">
+      <table>
+        <thead>
+          <tr><th>Event</th><th>Amount</th><th>Diagnosis</th><th>Decision</th><th>Actions</th></tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+    <div style="text-align:center;padding:14px;">
+      <button class="action-btn" id="load-more">load 50 more</button>
+    </div>
+  </div>
+</div>
+
+<script src="shared.js"></script>
+<script>
+  let allEvents = [];
+  let statusByEvent = {};   // event_id -> event_status row (or null)
+  let typeFilter = "all";
+  let query = "";
+  let shown = 50;
+
+  async function loadEvents() {
+    allEvents = await api("/api/events");
+    // Seed statusByEvent from the LEFT JOIN fields GET /api/events now
+    // includes (see db.repository.get_events) — without this, every row
+    // would show "not diagnosed" on page load regardless of what's
+    // actually in the database, until you clicked an action on it.
+    for (const e of allEvents) {
+      if (e.status_root_cause || e.status_intervention) {
+        statusByEvent[e.event_id] = {
+          root_cause: e.status_root_cause,
+          diagnosis_reasoning: e.status_diagnosis_reasoning,
+          diagnosis_method: e.status_diagnosis_method,
+          diagnosis_confidence: e.status_diagnosis_confidence,
+          intervention: e.status_intervention,
+          intervention_reasoning: e.status_intervention_reasoning,
+          payment_link_id: e.status_payment_link_id,
+        };
+      }
+    }
+    render();
+  }
+
+  function matchesFilters(e) {
+    if (typeFilter !== "all" && e.type !== typeFilter) return false;
+    if (query && !e.event_id.toLowerCase().includes(query)) return false;
+    return true;
+  }
+
+  function renderFilters() {
+    const types = ["all", ...new Set(allEvents.map(e => e.type))];
+    document.getElementById("type-filters").innerHTML = types.map(t =>
+      `<button class="${t === typeFilter ? 'active' : ''}" data-type="${escapeHtml(t)}">${t === "all" ? "All" : escapeHtml(t.replaceAll("_", " "))}</button>`
+    ).join("");
+    document.querySelectorAll("#type-filters button").forEach(btn => {
+      btn.onclick = () => { typeFilter = btn.dataset.type; shown = 50; render(); };
+    });
+  }
+
+  function rowHtml(e) {
+    const status = statusByEvent[e.event_id];
+    const diagnosed = status && status.root_cause;
+    const decided = status && status.intervention;
+    const linked = status && status.payment_link_id;
+
+    const diagnosisCell = diagnosed
+      ? `<b>${escapeHtml(status.root_cause.replaceAll("_"," "))}</b><div class="status-line">${escapeHtml(status.diagnosis_method)}${status.diagnosis_confidence != null ? " · " + Math.round(status.diagnosis_confidence*100) + "%" : ""}</div>`
+      : `<span style="color:var(--muted)">not diagnosed</span>`;
+    const decisionCell = decided
+      ? `<b>${escapeHtml(status.intervention.replaceAll("_"," "))}</b>`
+      : `<span style="color:var(--muted)">—</span>`;
+
+    return `
+      <tr data-event-id="${escapeHtml(e.event_id)}">
+        <td>${escapeHtml(e.event_id)}<div class="status-line">${escapeHtml(e.type.replaceAll("_"," "))}</div></td>
+        <td>${inr(e.amount)}</td>
+        <td>${diagnosisCell}</td>
+        <td>${decisionCell}${linked ? `<div class="status-line">link: ${escapeHtml(status.payment_link_id)}</div>` : ""}</td>
+        <td>
+          <button class="action-btn" data-action="diagnose" ${diagnosed ? "disabled" : ""}>Diagnose</button>
+          <button class="action-btn" data-action="decide" ${!diagnosed || decided ? "disabled" : ""}>Decide</button>
+          <button class="action-btn" data-action="simulate" ${!decided ? "disabled" : ""}>Simulate</button>
+          <button class="action-btn primary" data-action="payment-link" ${!decided || linked ? "disabled" : ""}>Real payment link</button>
+          <div class="status-line" data-role="msg"></div>
+        </td>
+      </tr>`;
+  }
+
+  function render() {
+    renderFilters();
+    const filtered = allEvents.filter(matchesFilters);
+    const visible = filtered.slice(0, shown);
+    document.getElementById("rows").innerHTML = visible.map(rowHtml).join("")
+      || `<tr><td colspan="5"><div class="empty">nothing matches</div></td></tr>`;
+    document.getElementById("load-more").style.display = shown < filtered.length ? "inline-block" : "none";
+    attachRowHandlers();
+  }
+
+  function attachRowHandlers() {
+    document.querySelectorAll("#rows tr[data-event-id]").forEach(tr => {
+      const eventId = tr.dataset.eventId;
+      tr.querySelectorAll("button[data-action]").forEach(btn => {
+        btn.onclick = () => runAction(eventId, btn.dataset.action, tr);
+      });
+    });
+  }
+
+  async function runAction(eventId, action, tr) {
+    const msgEl = tr.querySelector('[data-role="msg"]');
+    msgEl.textContent = "working…";
+    msgEl.classList.remove("error");
+    try {
+      const result = await apiPost(`/api/events/${encodeURIComponent(eventId)}/${action}`);
+      // Refresh this event's status from the server rather than trying to
+      // hand-merge the response shape locally — one source of truth for
+      // what event_status actually contains, matching what a page reload
+      // would show.
+      const full = await api(`/api/events/${encodeURIComponent(eventId)}`);
+      statusByEvent[eventId] = full.status;
+      msgEl.textContent = action === "payment-link" ? `link created: ${result.short_url}` : "done";
+      render();
+    } catch (err) {
+      msgEl.textContent = err.message;
+      msgEl.classList.add("error");
+    }
+  }
+
+  document.getElementById("search-box").addEventListener("input", (e) => {
+    query = e.target.value.toLowerCase();
+    shown = 50;
+    render();
+  });
+  document.getElementById("load-more").addEventListener("click", () => { shown += 50; render(); });
+
+  loadEvents().catch(err => {
+    document.getElementById("rows").innerHTML =
+      `<tr><td colspan="5"><div class="empty">Couldn't reach the API (${escapeHtml(err.message)}). Run <code>python api_server.py</code> first.</div></td></tr>`;
+  });
+</script>
+</body>
+</html>

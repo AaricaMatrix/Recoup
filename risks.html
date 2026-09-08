@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Recoup — Risks</title>
+<link rel="stylesheet" href="shared.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="topnav">
+    <a href="dashboard.html">Overview</a>
+    <a href="risks.html" class="active">Risks</a>
+    <a href="recoveries.html">Recoveries</a>
+    <a href="audit.html">Audit explorer</a>
+  </div>
+
+  <div class="top" style="margin-bottom:28px;padding-bottom:16px;">
+    <div>
+      <div class="brand"><span class="dot"></span><b>Recoup</b> · Risks</div>
+      <h1 style="font-size:26px;margin:8px 0 4px;">Every root cause, not just the leak point</h1>
+      <div class="sub" style="font-size:16px;">
+        the summary panel groups by type — this breaks each type down by root_cause and surfaces the biggest unresolved amounts
+      </div>
+    </div>
+  </div>
+
+  <div id="type-sections"></div>
+
+  <div class="panel ledger">
+    <h3>Largest at-risk events with no outcome yet</h3>
+    <div class="note">events acted on where the intervention hasn't resolved to a win or loss (e.g. a payment link created but not yet paid)</div>
+    <div class="scrollbox" style="max-height:400px;">
+      <table>
+        <thead><tr><th>Event</th><th>Root cause</th><th>Intervention</th><th>Amount</th></tr></thead>
+        <tbody id="unresolved-rows"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script src="shared.js"></script>
+<script>
+  function groupByTypeAndCause(rows) {
+    const byType = {};
+    for (const r of rows) {
+      byType[r.event_type] ??= {};
+      byType[r.event_type][r.root_cause] ??= { count: 0, at_risk: 0, recovered: 0 };
+      const bucket = byType[r.event_type][r.root_cause];
+      bucket.count += 1;
+      bucket.at_risk += r.amount_at_risk;
+      if (r.outcome_recovered) bucket.recovered += r.gross_amount_recovered;
+    }
+    return byType;
+  }
+
+  function renderTypeSections(byType) {
+    const container = document.getElementById("type-sections");
+    container.innerHTML = Object.entries(byType).map(([type, causes]) => {
+      const rows = Object.entries(causes)
+        .sort(([, a], [, b]) => b.at_risk - a.at_risk)
+        .map(([cause, b]) => `
+          <div class="row">
+            <div class="name">${escapeHtml(cause.replaceAll("_"," "))}<div class="meta" style="font-family:'Space Grotesk';color:var(--muted);font-size:12px;">${b.count} event${b.count === 1 ? "" : "s"}</div></div>
+            <div class="meta">${inr(b.recovered)} recovered / ${inr(b.at_risk)} at risk</div>
+          </div>`).join("");
+      return `
+        <div class="panel" style="margin-bottom:18px;">
+          <h3>${escapeHtml(type.replaceAll("_"," "))}</h3>
+          ${rows || '<div class="empty">no acted-on events of this type yet</div>'}
+        </div>`;
+    }).join("");
+  }
+
+  function renderUnresolved(rows) {
+    const unresolved = rows
+      .filter(r => r.outcome_recovered === null && !r.stopping_rule_applied)
+      .sort((a, b) => b.amount_at_risk - a.amount_at_risk)
+      .slice(0, 25);
+    document.getElementById("unresolved-rows").innerHTML = unresolved.map(r => `
+      <tr>
+        <td>${escapeHtml(r.event_id)}</td>
+        <td>${escapeHtml(r.root_cause.replaceAll("_"," "))}</td>
+        <td>${escapeHtml(r.intervention.replaceAll("_"," "))}</td>
+        <td>${inr(r.amount_at_risk)}</td>
+      </tr>`).join("") || `<tr><td colspan="4"><div class="empty">nothing unresolved right now</div></td></tr>`;
+  }
+
+  async function load() {
+    const rows = await api("/api/audit?limit=2000");
+    renderTypeSections(groupByTypeAndCause(rows));
+    renderUnresolved(rows);
+  }
+
+  load().catch(err => {
+    document.getElementById("type-sections").innerHTML =
+      `<div class="panel"><div class="empty">Couldn't reach the API (${escapeHtml(err.message)}). Run <code>python api_server.py</code> first.</div></div>`;
+  });
+</script>
+</body>
+</html>

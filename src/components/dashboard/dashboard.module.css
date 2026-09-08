@@ -1,0 +1,454 @@
+/* dashboard.module.css
+   -----------------------------------------------------------------------
+   Every value here is unchanged from your dashboard.html <style> block —
+   this is a straight port, not a redesign, per "keep my dashboard
+   aesthetic as it is". Rules that belonged to reusable widgets (tag,
+   toggle, search, filter pill) live in ../ui/ui.module.css instead; this
+   file only has the dashboard-page-specific layout and decoration. */
+
+.wrap {
+  max-width: 1080px;
+  margin: 0 auto;
+}
+
+/* ---------- header ---------- */
+.top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 52px;
+  border-bottom: 2px solid var(--ink);
+  padding-bottom: 22px;
+}
+.brand {
+  font-size: 14px;
+  letter-spacing: 0.02em;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-family: "IBM Plex Mono", monospace;
+}
+.brandName {
+  color: var(--ink);
+  font-weight: 600;
+  font-family: "Space Grotesk";
+}
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--win);
+}
+.heading {
+  font-size: 32px;
+  margin: 10px 0 2px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.subheading {
+  font-family: "Caveat", cursive;
+  color: #5b5237;
+  font-size: 20px;
+  margin-top: 4px;
+  max-width: 560px;
+  line-height: 1.25;
+}
+.topRight {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 14px;
+}
+.tapeTag {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 12px;
+  color: #5b4416;
+  background: #f6e27a;
+  padding: 7px 14px 8px;
+  transform: rotate(-2.5deg);
+  box-shadow: 1px 2px 4px rgba(60, 45, 10, 0.25);
+  position: relative;
+}
+.tapeTag::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0 0 9px 9px;
+  border-color: transparent transparent #cbb35a transparent;
+}
+
+/* ---------- funnel + hand-drawn tape dividers ---------- */
+.funnel {
+  position: relative;
+  display: flex;
+  margin-bottom: 6px;
+  border: 2px solid var(--ink);
+  border-radius: 4px;
+  overflow: visible;
+  background: var(--card);
+}
+.fcell {
+  flex: 1;
+  padding: 26px 28px;
+  position: relative;
+  transition: background 0.2s;
+}
+.fcell + .fcell {
+  border-left: 1px dashed var(--line);
+}
+.fcellLabel {
+  font-size: 11.5px;
+  color: var(--muted);
+  margin-bottom: 10px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-family: "IBM Plex Mono", monospace;
+}
+.stampbox {
+  display: inline-block;
+  border: 2px solid currentColor;
+  border-radius: 5px;
+  padding: 6px 12px;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 26px;
+  font-weight: 600;
+}
+.fcellRisk .stampbox {
+  color: var(--risk);
+  transform: rotate(-2deg);
+}
+.fcellRecovered .stampbox {
+  color: var(--win);
+  transform: rotate(1.5deg);
+}
+.fcellNum {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 27px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.fcellNum small {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 400;
+  margin-left: 4px;
+  font-family: "Space Grotesk";
+}
+
+.tape {
+  position: absolute;
+  top: 50%;
+  width: 98px;
+  height: 56px;
+  background: repeating-linear-gradient(
+    112deg,
+    #e7d8ac,
+    #e7d8ac 4px,
+    #dec894 4px,
+    #dec894 8px
+  );
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 1px 3px 7px rgba(60, 45, 20, 0.22);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 3;
+  cursor: default;
+}
+/* Positional variants replace the original #stub1 / #stub2 element IDs —
+   IDs don't compose well as reusable React props, so these become two
+   modifier classes applied alongside .tape instead. */
+.tapeFirst {
+  left: 33.333%;
+  transform: translate(-50%, -50%) rotate(-4deg);
+}
+.tapeSecond {
+  left: 66.666%;
+  transform: translate(-50%, -50%) rotate(3deg);
+}
+.tape svg {
+  width: 36px;
+  height: 18px;
+  overflow: visible;
+}
+.tape path {
+  fill: none;
+  stroke: #3d2f16;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+.tapeStat {
+  font-family: "Caveat", cursive;
+  font-size: 15px;
+  font-weight: 700;
+  color: #43371c;
+  text-align: center;
+  line-height: 1.05;
+  margin-top: 1px;
+}
+.tapeStat b {
+  font-size: 16px;
+}
+.tip {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--ink);
+  color: var(--paper);
+  font-family: "Space Grotesk";
+  font-size: 11.5px;
+  padding: 8px 11px;
+  border-radius: 6px;
+  width: 172px;
+  text-align: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s;
+  z-index: 5;
+  line-height: 1.4;
+}
+.tape:hover .tip {
+  opacity: 1;
+}
+.funnelNote {
+  text-align: right;
+  font-family: "Caveat", cursive;
+  font-size: 15px;
+  color: var(--muted);
+  margin: 2px 4px 40px 0;
+}
+
+/* ---------- by-type / by-intervention panels ---------- */
+.grid {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: 20px;
+  margin-bottom: 36px;
+}
+.panel {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 20px 22px;
+  position: relative;
+}
+.panel::before {
+  content: "";
+  position: absolute;
+  top: -1px;
+  left: 22px;
+  width: 46px;
+  height: 8px;
+  background: var(--paper);
+  border-left: 1px solid var(--line);
+  border-right: 1px solid var(--line);
+  border-radius: 0 0 3px 3px;
+}
+.panel h3 {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 600;
+  margin: 0 0 14px;
+  font-family: "IBM Plex Mono", monospace;
+}
+.panelHeadRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.clickableRow {
+  cursor: pointer;
+  border-radius: 5px;
+  margin: 0 -8px;
+  padding-left: 8px;
+  padding-right: 8px;
+  transition: background 0.15s;
+}
+.clickableRow:hover {
+  background: var(--paper-2);
+}
+.clickableRowActive {
+  background: var(--win-bg);
+}
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 9px 0;
+  border-bottom: 1px dashed var(--line);
+  font-size: 14px;
+}
+.row:last-child {
+  border-bottom: none;
+}
+.rowName {
+  color: var(--ink);
+}
+.rowMeta {
+  font-family: "IBM Plex Mono", monospace;
+  color: var(--muted);
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+.bar {
+  height: 5px;
+  background: var(--paper-2);
+  border-radius: 3px;
+  margin-top: 6px;
+  overflow: hidden;
+}
+.barFill {
+  height: 100%;
+  background: var(--win);
+  width: 0;
+  transition: width 0.8s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+/* ---------- audit trail / ledger ---------- */
+.ledgerHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 4px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.ledgerTitle {
+  font-size: 14px;
+  color: var(--ink);
+  font-weight: 600;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-family: "Space Grotesk";
+}
+.ledgerNote {
+  font-family: "Caveat", cursive;
+  font-size: 16px;
+  color: var(--muted);
+  margin: 5px 0 14px;
+}
+.controls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+.filtersRow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.sortbtn {
+  background: var(--paper-2);
+  border: 1px solid var(--line);
+  color: var(--muted);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 11.5px;
+  padding: 6px 11px;
+  border-radius: 20px;
+  cursor: pointer;
+}
+.sortbtn:hover {
+  color: var(--ink);
+}
+
+.ledgerTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+  font-family: "IBM Plex Mono", monospace;
+}
+.ledgerTable th {
+  text-align: left;
+  color: var(--muted);
+  font-weight: 600;
+  padding: 8px 10px;
+  border-bottom: 2px solid var(--ink);
+  font-family: "Space Grotesk";
+  font-size: 11.5px;
+}
+.ledgerTable td {
+  padding: 9px 10px;
+  border-bottom: 1px dashed var(--line);
+  color: var(--ink);
+  vertical-align: top;
+}
+.reasonCell {
+  color: var(--muted);
+  font-family: "Space Grotesk";
+  font-size: 12px;
+  max-width: 250px;
+}
+.evrow {
+  cursor: pointer;
+  transition: background 0.12s;
+}
+.evrow:hover {
+  background: var(--paper-2);
+}
+.expandRow td {
+  background: #efe6cc;
+  border-bottom: 1px dashed var(--line);
+}
+.expandInner {
+  font-family: "Space Grotesk";
+  font-size: 12.5px;
+  color: var(--muted);
+  padding: 4px 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 24px;
+}
+.expandInner div b {
+  color: var(--ink);
+  font-family: "IBM Plex Mono", monospace;
+  font-weight: 600;
+}
+.chevron {
+  display: inline-block;
+  transition: transform 0.15s;
+  color: var(--muted);
+  margin-right: 6px;
+  font-size: 10px;
+}
+.chevronOpen {
+  transform: rotate(90deg);
+}
+.scrollbox {
+  max-height: 380px;
+  overflow-y: auto;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+.scrollbox::-webkit-scrollbar {
+  width: 8px;
+}
+.scrollbox::-webkit-scrollbar-thumb {
+  background: var(--line);
+  border-radius: 4px;
+}
+.empty {
+  padding: 26px;
+  text-align: center;
+  font-family: "Caveat", cursive;
+  color: var(--muted);
+  font-size: 18px;
+}
+
+.footer {
+  margin-top: 44px;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: center;
+  font-family: "IBM Plex Mono", monospace;
+}

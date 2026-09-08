@@ -1,0 +1,9 @@
+.env
+__pycache__/
+*.pyc
+
+# Local SQLite database — regenerate with `python -m db.migrate && python
+# -m db.seed` rather than committing it. Same reasoning as not committing
+# a Prisma dev.db: the migrations (db/migrations/*.sql) are the source of
+# truth, the data file itself is disposable local state.
+data/recoup.db

@@ -1,0 +1,39 @@
+/* globals-additions.css
+   -----------------------------------------------------------------------
+   COPY-PASTE THIS INTO YOUR EXISTING src/app/globals.css — don't replace
+   the whole file, just add these two blocks (the @import at the very top,
+   the :root block wherever your other CSS variables live, or at the top if
+   you don't have any yet).
+
+   These are the exact CSS custom properties dashboard.html defined inline
+   on :root. Every dashboard.module.css / ui.module.css rule in this
+   restructure references them via var(--paper), var(--ink), etc. — without
+   this block, the components will render with browser-default colors
+   (transparent/black) instead of the paper/ledger palette. */
+
+@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Caveat:wght@600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap");
+
+:root {
+  --paper: #f3eddd;
+  --paper-2: #eae0c4;
+  --card: #f8f3e6;
+  --line: #dccfa9;
+  --ink: #2e2a22;
+  --muted: #8a7f63;
+  --win: #2f6b4f;
+  --win-bg: #e1eddd;
+  --risk: #b23a2e;
+  --risk-bg: #f5e3de;
+  --hold: #a6741f;
+  --hold-bg: #f3e4be;
+}
+
+/* The dashboard's <body> background also had a subtle dotted paper texture
+   applied directly to `body`. If /dashboard is the only route that should
+   look like this (rather than your whole site), apply this class to the
+   dashboard route's own wrapper div instead of globally to `body`. */
+.dashboardPaperBackground {
+  background-color: var(--paper);
+  background-image: radial-gradient(rgba(46, 42, 34, 0.05) 1px, transparent 1px);
+  background-size: 3px 3px;
+}

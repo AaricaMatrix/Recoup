@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Recoup — Recoveries</title>
+<link rel="stylesheet" href="shared.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="topnav">
+    <a href="dashboard.html">Overview</a>
+    <a href="risks.html">Risks</a>
+    <a href="recoveries.html" class="active">Recoveries</a>
+    <a href="audit.html">Audit explorer</a>
+  </div>
+
+  <div class="top" style="margin-bottom:28px;padding-bottom:16px;">
+    <div>
+      <div class="brand"><span class="dot"></span><b>Recoup</b> · Recoveries</div>
+      <h1 style="font-size:26px;margin:8px 0 4px;">Only the wins</h1>
+      <div class="sub" style="font-size:16px;">every event where the intervention actually worked, nothing else</div>
+    </div>
+    <div id="totals" style="display:flex;gap:28px;"></div>
+  </div>
+
+  <div class="panel" style="margin-bottom:20px;">
+    <h3>By channel</h3>
+    <div id="by-channel"></div>
+  </div>
+
+  <div class="panel ledger">
+    <h3>Recovered events</h3>
+    <div class="scrollbox" style="max-height:60vh;">
+      <table>
+        <thead><tr><th>Event</th><th>Root cause</th><th>Channel</th><th>Gross</th><th>Net</th><th>When</th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script src="shared.js"></script>
+<script>
+  function stat(label, value) {
+    return `<div><div style="font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:600;color:var(--ink)">${value}</div>
+      <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em">${label}</div></div>`;
+  }
+
+  function renderTotals(rows) {
+    const gross = rows.reduce((s, r) => s + r.gross_amount_recovered, 0);
+    const net = rows.reduce((s, r) => s + r.net_amount_recovered, 0);
+    document.getElementById("totals").innerHTML =
+      stat("recovered events", rows.length) + stat("gross recovered", inr(gross)) + stat("net recovered", inr(net));
+  }
+
+  function renderByChannel(rows) {
+    const byChannel = {};
+    for (const r of rows) {
+      byChannel[r.intervention] ??= { count: 0, gross: 0 };
+      byChannel[r.intervention].count += 1;
+      byChannel[r.intervention].gross += r.gross_amount_recovered;
+    }
+    const entries = Object.entries(byChannel).sort(([, a], [, b]) => b.gross - a.gross);
+    document.getElementById("by-channel").innerHTML = entries.map(([channel, b]) => `
+      <div class="row">
+        <div class="name">${escapeHtml(channel.replaceAll("_"," "))}</div>
+        <div class="meta">${b.count} win${b.count === 1 ? "" : "s"} · ${inr(b.gross)}</div>
+      </div>`).join("") || `<div class="empty">no recoveries yet</div>`;
+  }
+
+  function renderRows(rows) {
+    document.getElementById("rows").innerHTML = rows
+      .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+      .map(r => `
+        <tr>
+          <td>${escapeHtml(r.event_id)}</td>
+          <td>${escapeHtml(r.root_cause.replaceAll("_"," "))}</td>
+          <td>${escapeHtml(r.intervention.replaceAll("_"," "))}</td>
+          <td>${inr(r.gross_amount_recovered)}</td>
+          <td>${inr(r.net_amount_recovered)}</td>
+          <td>${escapeHtml(r.timestamp.replace("T", " ").slice(0, 19))}</td>
+        </tr>`).join("") || `<tr><td colspan="6"><div class="empty">no recoveries yet</div></td></tr>`;
+  }
+
+  async function load() {
+    const rows = await api("/api/audit?recovered_only=true&limit=2000");
+    renderTotals(rows);
+    renderByChannel(rows);
+    renderRows(rows);
+  }
+
+  load().catch(err => {
+    document.getElementById("rows").innerHTML =
+      `<tr><td colspan="6"><div class="empty">Couldn't reach the API (${escapeHtml(err.message)}). Run <code>python api_server.py</code> first.</div></td></tr>`;
+  });
+</script>
+</body>
+</html>

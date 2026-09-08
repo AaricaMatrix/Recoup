@@ -1,0 +1,118 @@
+/* ui.module.css
+   -----------------------------------------------------------------------
+   Every rule below is copied 1:1 (values unchanged) from the corresponding
+   selector in your original dashboard.html <style> block, just renamed to
+   camelCase class names so they work as a CSS Module and moved next to the
+   components that use them. The var(--paper), var(--ink) etc. custom
+   properties are NOT redefined here — they must exist on :root, which is
+   why the "Add this to globals.css" snippet below (also provided as
+   globals-additions.css) has to be applied once at the app level. */
+
+/* ---- Tag.tsx : was .tag / .tag.win / .tag.loss / .tag.hold ---- */
+.tag {
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: "IBM Plex Mono", monospace;
+}
+.win {
+  background: var(--win-bg);
+  color: var(--win);
+}
+.loss {
+  background: var(--risk-bg);
+  color: var(--risk);
+}
+.hold {
+  background: var(--hold-bg);
+  color: var(--hold);
+}
+
+/* ---- ToggleGroup.tsx : was .toggle / .toggle button / .toggle button.active ---- */
+.toggle {
+  display: flex;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 3px;
+  font-size: 12px;
+  font-family: "IBM Plex Mono", monospace;
+}
+.toggle button {
+  border: none;
+  background: none;
+  color: var(--muted);
+  padding: 5px 13px;
+  border-radius: 16px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: inherit;
+}
+/* Compound selector on purpose — CSS Modules hash both class tokens, so
+   this only matches a button that ALSO has .active, exactly like the
+   original ".toggle button.active" rule. */
+.toggle button.active {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+/* ---- SearchInput.tsx : was .search / .search input / .search::before ---- */
+.search {
+  margin-left: auto;
+  position: relative;
+}
+.search input {
+  background: var(--paper-2);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  color: var(--ink);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 12px;
+  padding: 6px 12px 6px 28px;
+  width: 160px;
+  outline: none;
+}
+.search input:focus {
+  border-color: var(--ink);
+}
+.search::before {
+  content: "⌕";
+  position: absolute;
+  left: 11px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/* ---- FilterPill.tsx : was .filters button / .filters button.active ---- */
+.filterPill {
+  background: var(--paper-2);
+  border: 1px solid var(--line);
+  color: var(--muted);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 12px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.filterPill:hover {
+  color: var(--ink);
+}
+.filterPillActive {
+  color: var(--paper);
+  border-color: var(--ink);
+  background: var(--ink);
+}
+
+/* ---- FilterPill.tsx ClearLink : was .clear-filter ---- */
+.clearFilter {
+  font-family: "Caveat", cursive;
+  font-size: 15px;
+  color: var(--muted);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
