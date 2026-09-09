@@ -6,17 +6,30 @@
 <link rel="stylesheet" href="shared.css">
 </head>
 <body>
-<div class="wrap">
-  <div class="topnav">
-    <a href="dashboard.html">Overview</a>
-    <a href="risks.html">Risks</a>
-    <a href="recoveries.html" class="active">Recoveries</a>
-    <a href="audit.html">Audit explorer</a>
-  </div>
+<div class="shell">
+  <aside class="sidebar">
+    <a class="sidebar-brand" href="landing.html" style="text-decoration:none;">
+      <span class="dot"></span>
+      <div class="sidebar-brand-text"><b>Recoup</b><span>AI Revenue Recovery agent</span></div>
+    </a>
+    <div class="sidebar-section-label">Workspace</div>
+    <nav class="sidebar-nav">
+      <a href="dashboard.html">Overview</a>
+      <a href="risks.html">Revenue at Risk</a>
+      <a href="recoveries.html" class="active">Recoveries</a>
+      <a href="audit.html">Audit Trail</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="testmode-badge">
+        <span class="dot"></span>
+        <div><b>Razorpay Test Mode</b><span>Sandbox · safe recovery runs</span></div>
+      </div>
+    </div>
+  </aside>
+  <main class="main">
 
-  <div class="top" style="margin-bottom:28px;padding-bottom:16px;">
+  <div class="top" style="margin-bottom:20px;padding-bottom:16px;">
     <div>
-      <div class="brand"><span class="dot"></span><b>Recoup</b> · Recoveries</div>
       <h1 style="font-size:26px;margin:8px 0 4px;">Only the wins</h1>
       <div class="sub" style="font-size:16px;">every event where the intervention actually worked, nothing else</div>
     </div>
@@ -37,6 +50,7 @@
       </table>
     </div>
   </div>
+  </main>
 </div>
 
 <script src="shared.js"></script>

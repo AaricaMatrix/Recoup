@@ -251,6 +251,22 @@ def get_summary(run_type=None):
         SELECT diagnosis_method, COUNT(*) AS count FROM audit_log {where} GROUP BY diagnosis_method
     """, params).fetchall()
 
+    # Operational breakdown — mirrors the "how much work is actually
+    # in flight right now" view (active / escalated / failed / recovered /
+    # written off), as opposed to the financial totals above which only
+    # answer "how much money." Both matter to a judge: the financial
+    # numbers say whether it works, this says whether it's honest about
+    # what's still unresolved.
+    operational = conn.execute(f"""
+        SELECT
+            COALESCE(SUM(CASE WHEN outcome_recovered IS NULL AND stopping_rule_applied = 0 THEN 1 ELSE 0 END), 0) AS active,
+            COALESCE(SUM(CASE WHEN intervention = 'human_collections_handoff' AND stopping_rule_applied = 0 THEN 1 ELSE 0 END), 0) AS escalated,
+            COALESCE(SUM(CASE WHEN outcome_recovered = 0 AND stopping_rule_applied = 0 THEN 1 ELSE 0 END), 0) AS failed,
+            COALESCE(SUM(CASE WHEN outcome_recovered = 1 THEN 1 ELSE 0 END), 0) AS recovered,
+            COALESCE(SUM(CASE WHEN stopping_rule_applied = 1 THEN 1 ELSE 0 END), 0) AS written_off
+        FROM audit_log {where}
+    """, params).fetchone()
+
     conn.close()
 
     win_rate = round(100 * totals["wins"] / totals["events_acted_on"], 1) if totals["events_acted_on"] else 0
@@ -262,6 +278,13 @@ def get_summary(run_type=None):
         "events_acted_on": totals["events_acted_on"],
         "events_written_off_by_stopping_rules": totals["events_written_off"],
         "win_rate_pct_of_acted_on": win_rate,
+        "operational": {
+            "active": operational["active"],
+            "escalated": operational["escalated"],
+            "failed": operational["failed"],
+            "recovered": operational["recovered"],
+            "written_off": operational["written_off"],
+        },
         "by_type": {r["type"]: {"count": r["count"], "at_risk": r["at_risk"], "gross": r["gross"], "net": r["net"]} for r in by_type},
         "by_intervention": {r["intervention"]: {"attempts": r["attempts"], "wins": r["wins"], "recovered": r["recovered"]} for r in by_intervention},
         "diagnosis_method_counts": {r["diagnosis_method"]: r["count"] for r in diagnosis_methods},

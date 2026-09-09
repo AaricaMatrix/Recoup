@@ -263,15 +263,37 @@ fixed.
   with zero server (reads static `dashboard_data.js`), for a Vercel deploy.
 - `audit.html` — **the per-event action explorer**. Every row gets its
   own Diagnose / Decide / Simulate / Real payment link buttons, live
-  against the database.
+  against the database. Diagnosis confidence renders as a small bar (only
+  where a real one exists — rule-based rows show no bar rather than a
+  fake one), and any write-off triggered by a stopping rule gets a
+  `guardrail` tag instead of blending into an ordinary row.
 - `risks.html` — every root cause within each leak-point type (not just
   the type-level total), plus the largest at-risk events with no outcome
   yet.
 - `recoveries.html` — only the wins, with a by-channel breakdown.
+- `landing.html` — the front door. Live numbers pulled straight from
+  `dashboard_data.js` (not a mockup), a three-stage pipeline explainer,
+  and the guardrails/honesty callouts spelled out in one place for anyone
+  skimming before they click into the dashboard.
+
+All five pages share one **sidebar app shell** (persistent Overview /
+Revenue at Risk / Recoveries / Audit Trail nav, plus a Test Mode badge
+pinned to the bottom) instead of the single scrolling page this started
+as — `dashboard.html` and `landing.html` keep their own copy of the CSS
+so they still work with zero server (Vercel-safe); `audit.html`,
+`risks.html`, and `recoveries.html` pull it from `shared.css` since
+they already require `api_server.py` to be running anyway.
+
+**An honesty banner on every audit view** states the real failure count
+out loud — *"N attempts recorded a failure — no success is claimed for
+them"* — rather than only surfacing wins. Computed from
+`operational.failed` in `db.repository.get_summary()`, so it's the same
+query backing the numbers everywhere else, not a separately-maintained
+claim that could drift out of sync.
 
 ```bash
 python api_server.py
-# open http://localhost:5000  (or click through the nav bar from dashboard.html)
+# open http://localhost:5000/landing.html  (or click through the sidebar from any page)
 ```
 
 `webhook_server.py` still works exactly like before — it's now a
@@ -373,10 +395,12 @@ create_live_links.py    creates REAL Razorpay test-mode Payment Links from the s
 check_live_status.py    polls Razorpay for real payment status, writes back to live_links table
 webhook_server.py       one-line shim -> api_server.py's app (kept for backward-compatible `python webhook_server.py`)
 dashboard.html          static funnel/breakdown overview — works with zero server
+landing.html            front door / marketing page — also works with zero server
 shared.css / shared.js  styling + fetch helpers shared by the three live pages below
 audit.html              per-event action explorer (needs api_server.py running)
 risks.html              root-cause deep dive + largest unresolved events (needs api_server.py running)
 recoveries.html         wins only, by channel (needs api_server.py running)
+vercel.json             redirects the bare deployed URL to landing.html
 ```
 
 ## What's next if this goes further

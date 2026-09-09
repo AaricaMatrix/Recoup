@@ -1,4 +1,3 @@
-
 .env
 __pycache__/
 *.pyc
@@ -8,12 +7,3 @@ __pycache__/
 # a Prisma dev.db: the migrations (db/migrations/*.sql) are the source of
 # truth, the data file itself is disposable local state.
 data/recoup.db
-
-# OS junk files (relevant if anyone on Mac ever clones this)
-.DS_Store
-
-# private key files — never commit these, for any project
-*.pem
-
-# Vercel CLI's local config folder, created once you `vercel` deploy
-.vercel

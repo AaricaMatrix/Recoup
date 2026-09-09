@@ -6,23 +6,38 @@
 <link rel="stylesheet" href="shared.css">
 </head>
 <body>
-<div class="wrap">
-  <div class="topnav">
-    <a href="dashboard.html">Overview</a>
-    <a href="risks.html">Risks</a>
-    <a href="recoveries.html">Recoveries</a>
-    <a href="audit.html" class="active">Audit explorer</a>
-  </div>
+<div class="shell">
+  <aside class="sidebar">
+    <a class="sidebar-brand" href="landing.html" style="text-decoration:none;">
+      <span class="dot"></span>
+      <div class="sidebar-brand-text"><b>Recoup</b><span>AI Revenue Recovery agent</span></div>
+    </a>
+    <div class="sidebar-section-label">Workspace</div>
+    <nav class="sidebar-nav">
+      <a href="dashboard.html">Overview</a>
+      <a href="risks.html">Revenue at Risk</a>
+      <a href="recoveries.html">Recoveries</a>
+      <a href="audit.html" class="active">Audit Trail</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="testmode-badge">
+        <span class="dot"></span>
+        <div><b>Razorpay Test Mode</b><span>Sandbox · safe recovery runs</span></div>
+      </div>
+    </div>
+  </aside>
+  <main class="main">
 
-  <div class="top" style="margin-bottom:28px;padding-bottom:16px;">
+  <div class="top" style="margin-bottom:20px;padding-bottom:16px;">
     <div>
-      <div class="brand"><span class="dot"></span><b>Recoup</b> · Audit Explorer</div>
       <h1 style="font-size:26px;margin:8px 0 4px;">Act on one event at a time</h1>
       <div class="sub" style="font-size:16px;">
         diagnose → decide → act, per event — needs <code>python api_server.py</code> running
       </div>
     </div>
   </div>
+
+  <div class="honesty-banner" id="honesty-banner"></div>
 
   <div class="panel" style="margin-bottom:20px;">
     <div class="controls" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
@@ -44,6 +59,7 @@
       <button class="action-btn" id="load-more">load 50 more</button>
     </div>
   </div>
+  </main>
 </div>
 
 <script src="shared.js"></script>
@@ -74,6 +90,20 @@
       }
     }
     render();
+    renderHonestyBanner();
+  }
+
+  async function renderHonestyBanner() {
+    const summary = await api("/api/summary");
+    const failed = (summary.operational && summary.operational.failed) || 0;
+    const el = document.getElementById("honesty-banner");
+    if (failed === 0) {
+      el.className = "honesty-banner clean";
+      el.textContent = "no failed attempts recorded yet — every acted-on event is either recovered, pending, or an honest write-off";
+    } else {
+      el.className = "honesty-banner";
+      el.textContent = `${failed} attempt${failed === 1 ? "" : "s"} recorded a failure — no success is claimed for ${failed === 1 ? "it" : "them"}`;
+    }
   }
 
   function matchesFilters(e) {
@@ -84,9 +114,12 @@
 
   function renderFilters() {
     const types = ["all", ...new Set(allEvents.map(e => e.type))];
-    document.getElementById("type-filters").innerHTML = types.map(t =>
-      `<button class="${t === typeFilter ? 'active' : ''}" data-type="${escapeHtml(t)}">${t === "all" ? "All" : escapeHtml(t.replaceAll("_", " "))}</button>`
-    ).join("");
+    const counts = {};
+    allEvents.forEach(e => { counts[e.type] = (counts[e.type]||0) + 1; });
+    document.getElementById("type-filters").innerHTML = types.map(t => {
+      const count = t === "all" ? allEvents.length : (counts[t]||0);
+      return `<button class="${t === typeFilter ? 'active' : ''}" data-type="${escapeHtml(t)}">${t === "all" ? "All" : escapeHtml(t.replaceAll("_", " "))} <span style="opacity:.55">${count}</span></button>`;
+    }).join("");
     document.querySelectorAll("#type-filters button").forEach(btn => {
       btn.onclick = () => { typeFilter = btn.dataset.type; shown = 50; render(); };
     });
@@ -97,12 +130,16 @@
     const diagnosed = status && status.root_cause;
     const decided = status && status.intervention;
     const linked = status && status.payment_link_id;
+    const isGuardrail = decided && status.intervention === "write_off";
 
+    const confidenceBar = (status && status.diagnosis_confidence != null)
+      ? `<span class="confidence-bar"><div style="width:${Math.round(status.diagnosis_confidence*100)}%"></div></span>`
+      : "";
     const diagnosisCell = diagnosed
-      ? `<b>${escapeHtml(status.root_cause.replaceAll("_"," "))}</b><div class="status-line">${escapeHtml(status.diagnosis_method)}${status.diagnosis_confidence != null ? " · " + Math.round(status.diagnosis_confidence*100) + "%" : ""}</div>`
+      ? `<b>${escapeHtml(status.root_cause.replaceAll("_"," "))}</b>${confidenceBar}<div class="status-line">${escapeHtml(status.diagnosis_method)}${status.diagnosis_confidence != null ? " · " + Math.round(status.diagnosis_confidence*100) + "%" : ""}</div>`
       : `<span style="color:var(--muted)">not diagnosed</span>`;
     const decisionCell = decided
-      ? `<b>${escapeHtml(status.intervention.replaceAll("_"," "))}</b>`
+      ? `<b>${escapeHtml(status.intervention.replaceAll("_"," "))}</b>${isGuardrail ? '<span class="guardrail-tag">guardrail</span>' : ""}`
       : `<span style="color:var(--muted)">—</span>`;
 
     return `

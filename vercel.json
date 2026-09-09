@@ -1,5 +1,5 @@
 {
   "redirects": [
-    { "source": "/", "destination": "/dashboard.html", "permanent": false }
+    { "source": "/", "destination": "/landing.html", "permanent": false }
   ]
 }

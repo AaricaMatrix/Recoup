@@ -116,29 +116,93 @@
   .empty{padding:26px;text-align:center;font-family:'Caveat',cursive;color:var(--muted);font-size:18px;}
   footer{margin-top:44px;color:var(--muted);font-size:12px;text-align:center;font-family:'IBM Plex Mono',monospace;}
 
-  /* nav to the three new live pages (risks/recoveries/audit) — same
-     look as shared.css's .topnav, duplicated here since dashboard.html
-     stays a single self-contained file (see shared.css's own comment on
-     why it doesn't just <link> instead). */
-  .topnav{display:flex;gap:4px;margin-bottom:24px;font-family:'IBM Plex Mono',monospace;font-size:13px;}
-  .topnav a{color:var(--muted);text-decoration:none;padding:8px 14px;border-radius:20px;border:1px solid transparent;}
-  .topnav a:hover{color:var(--ink);}
-  .topnav a.active{color:var(--ink);border-color:var(--line);background:var(--card);font-weight:600;}
+  /* ---------- app shell: sidebar + main content ---------- */
+  .shell{display:flex;align-items:stretch;min-height:100vh;}
+  .sidebar{
+    width:236px;flex-shrink:0;background:var(--card);border-right:1px solid var(--line);
+    padding:26px 18px;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;
+  }
+  .sidebar-brand{display:flex;align-items:center;gap:8px;padding:4px 8px 20px;border-bottom:1px solid var(--line);margin-bottom:18px;}
+  .sidebar-brand .dot{width:8px;height:8px;}
+  .sidebar-brand-text b{display:block;font-family:'Space Grotesk';font-size:16px;font-weight:700;color:var(--ink);}
+  .sidebar-brand-text span{display:block;font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--muted);letter-spacing:.03em;}
+  .sidebar-section-label{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;padding:0 8px;margin-bottom:8px;}
+  .sidebar-nav{display:flex;flex-direction:column;gap:2px;}
+  .sidebar-nav a{
+    display:flex;align-items:center;gap:9px;color:var(--muted);text-decoration:none;
+    padding:9px 10px;border-radius:6px;font-family:'Space Grotesk';font-size:14px;
+    border-left:3px solid transparent;
+  }
+  .sidebar-nav a:hover{color:var(--ink);background:var(--paper-2);}
+  .sidebar-nav a.active{color:var(--ink);font-weight:600;background:var(--paper);border-left-color:var(--ink);}
+  .sidebar-footer{margin-top:auto;}
+  .testmode-badge{
+    display:flex;align-items:center;gap:8px;background:var(--paper);border:1px solid var(--line);
+    border-radius:8px;padding:10px 12px;font-family:'IBM Plex Mono',monospace;
+  }
+  .testmode-badge .dot{width:7px;height:7px;flex-shrink:0;}
+  .testmode-badge b{display:block;font-size:12px;color:var(--ink);font-family:'Space Grotesk';}
+  .testmode-badge span{display:block;font-size:10.5px;color:var(--muted);margin-top:1px;}
+
+  .main{flex:1;min-width:0;padding:44px 44px 80px;max-width:1120px;}
+
+  /* ---------- financial / operational section grouping ---------- */
+  .section-label{
+    font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:.1em;
+    text-transform:uppercase;margin:0 0 12px;display:flex;align-items:center;gap:8px;
+  }
+  .section-label::after{content:"";flex:1;height:1px;background:var(--line);}
+  .opgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin:28px 0 40px;}
+  .opcard{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:16px 18px;}
+  .opcard .opnum{font-family:'IBM Plex Mono',monospace;font-size:24px;font-weight:600;color:var(--ink);}
+  .opcard .oplabel{font-family:'Space Grotesk';font-size:12px;color:var(--muted);margin-top:3px;}
+  .opcard.active .opnum{color:var(--hold);}
+  .opcard.escalated .opnum{color:#6b5a9e;}
+  .opcard.failed .opnum{color:var(--risk);}
+  .opcard.recovered .opnum{color:var(--win);}
+  .opcard.written-off .opnum{color:var(--muted);}
+
+  /* ---------- honesty banner + confidence bar + guardrail tag ---------- */
+  .honesty-banner{
+    font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:var(--risk);
+    margin-bottom:14px;padding:9px 14px;background:var(--risk-bg);border-radius:6px;
+    display:flex;align-items:center;gap:8px;
+  }
+  .honesty-banner.clean{color:var(--win);background:var(--win-bg);}
+  .confidence-bar{width:60px;height:4px;background:var(--paper-2);border-radius:2px;display:inline-block;overflow:hidden;vertical-align:middle;margin-left:6px;}
+  .confidence-bar div{height:100%;background:var(--win);}
+  .guardrail-tag{
+    font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--hold);background:var(--hold-bg);
+    padding:1px 6px;border-radius:3px;margin-left:6px;letter-spacing:.03em;
+  }
   ::-webkit-scrollbar{width:8px;} ::-webkit-scrollbar-thumb{background:var(--line);border-radius:4px;}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <div class="topnav">
-    <a href="dashboard.html" class="active">Overview</a>
-    <a href="risks.html">Risks</a>
-    <a href="recoveries.html">Recoveries</a>
-    <a href="audit.html">Audit explorer</a>
-  </div>
+<div class="shell">
+  <aside class="sidebar">
+    <a class="sidebar-brand" href="landing.html" style="text-decoration:none;">
+      <span class="dot"></span>
+      <div class="sidebar-brand-text"><b>Recoup</b><span>AI Revenue Recovery agent</span></div>
+    </a>
+    <div class="sidebar-section-label">Workspace</div>
+    <nav class="sidebar-nav">
+      <a href="dashboard.html" class="active">Overview</a>
+      <a href="risks.html">Revenue at Risk</a>
+      <a href="recoveries.html">Recoveries</a>
+      <a href="audit.html">Audit Trail</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="testmode-badge">
+        <span class="dot" style="background:var(--win);"></span>
+        <div><b>Razorpay Test Mode</b><span>Sandbox · safe recovery runs</span></div>
+      </div>
+    </div>
+  </aside>
+  <main class="main">
 
   <div class="top">
     <div>
-      <div class="brand"><span class="dot"></span><b>Recoup</b> · AI Revenue Recovery agent</div>
       <h1>Where the money went, and what got it back.</h1>
       <div class="sub">One batch, run once, numbers untouched afterward — every action below has a reason attached, logged before the outcome was known.</div>
     </div>
@@ -151,6 +215,7 @@
     </div>
   </div>
 
+  <div class="section-label">Financial</div>
   <div class="funnel">
     <div class="fcell risk">
       <div class="label">Revenue at risk</div>
@@ -178,6 +243,9 @@
   </div>
   <div class="funnel-note">↑ hover the tape for what each number means</div>
 
+  <div class="section-label">Operational</div>
+  <div class="opgrid" id="opgrid"></div>
+
   <div class="grid">
     <div class="panel">
       <div style="display:flex;justify-content:space-between;align-items:center;">
@@ -202,6 +270,7 @@
         <div class="note">click a row for the full diagnosis and cost breakdown · click a stat on the left to filter by it</div>
       </div>
     </div>
+    <div class="honesty-banner" id="honesty-banner"></div>
     <div class="controls">
       <div class="filters" id="filters"></div>
       <button class="sortbtn" id="sortbtn">sort: amount ↓</button>
@@ -236,6 +305,7 @@
   </div>
 
   <footer>Synthetic batch of 200 events · schema mirrors Razorpay Payments/Orders/Invoices entities · swap generate_data.py for the live test-mode API to go from demo to real</footer>
+  </main>
 </div>
 
 <script src="dashboard_data.js"></script>
@@ -286,6 +356,34 @@
       `<b>${SUMMARY.win_rate_pct_of_acted_on}%</b> win rate`;
   }
 
+  function renderOperational(){
+    const op = SUMMARY.operational || {active:0,escalated:0,failed:0,recovered:0,written_off:0};
+    const cards = [
+      ['active','Active','in flight, outcome not known yet'],
+      ['escalated','Escalated','handed to a human collections step'],
+      ['failed','Failed','attempted, didn\'t recover — reported either way'],
+      ['recovered','Recovered','closed as a win'],
+      ['written-off','Written off','stopping rules chose not to chase'],
+    ];
+    document.getElementById('opgrid').innerHTML = cards.map(([key,label,hint])=>`
+      <div class="opcard ${key}" title="${hint}">
+        <div class="opnum">${op[key.replace('-','_')] ?? 0}</div>
+        <div class="oplabel">${label}</div>
+      </div>`).join('');
+  }
+
+  function renderHonestyBanner(){
+    const failed = (SUMMARY.operational && SUMMARY.operational.failed) || 0;
+    const el = document.getElementById('honesty-banner');
+    if (failed === 0){
+      el.className = 'honesty-banner clean';
+      el.textContent = 'no failed attempts in this batch — every acted-on event is either recovered, pending, or an honest write-off';
+    } else {
+      el.className = 'honesty-banner';
+      el.textContent = `${failed} attempt${failed===1?'':'s'} recorded a failure — no success is claimed for ${failed===1?'it':'them'}, they're in the ledger below marked "no win"`;
+    }
+  }
+
   function renderByType(){
     const el = document.getElementById('by-type'); el.innerHTML = '';
     Object.entries(byTypeAgg).forEach(([k,v])=>{
@@ -322,6 +420,17 @@
     return e.outcome_recovered ? '<span class="tag win">recovered</span>' : '<span class="tag loss">no win</span>';
   }
 
+  // Only AI-diagnosed rows (diagnosis_method === 'ai_llm') carry a real
+  // confidence score — rule-based rows get diagnosis_confidence: null, so
+  // this renders nothing for them rather than a fake/default bar. Showing
+  // a confidence value only where one genuinely exists is the same
+  // "don't imply certainty you don't have" principle as the honesty banner.
+  function confidenceBar(e){
+    if (e.diagnosis_confidence === null || e.diagnosis_confidence === undefined) return '';
+    const pct = Math.round(e.diagnosis_confidence * 100);
+    return `<span class="confidence-bar"><div style="width:${pct}%"></div></span>`;
+  }
+
   let openRow = null;
   function renderLedger(){
     let rows = AUDIT_LOG.filter(e =>
@@ -336,8 +445,8 @@
       <tr class="evrow" data-id="${e.event_id}">
         <td><span class="chevron">▸</span></td>
         <td>${e.event_id}</td>
-        <td>${e.root_cause.replaceAll('_',' ')}</td>
-        <td>${e.intervention.replaceAll('_',' ')}</td>
+        <td>${e.root_cause.replaceAll('_',' ')}${confidenceBar(e)}</td>
+        <td>${e.intervention.replaceAll('_',' ')}${e.stopping_rule_applied ? '<span class="guardrail-tag">guardrail</span>' : ''}</td>
         <td class="reason">${e.intervention_reasoning}</td>
         <td>${inr(e.amount_at_risk)}</td>
         <td>${outcomeTag(e)}</td>
@@ -405,7 +514,7 @@
     }).join('');
   }
 
-  function renderAll(){ renderFunnel(); renderByType(); renderByIntervention(); renderLedger(); renderPromisePanel(); syncFilterButtons(); }
+  function renderAll(){ renderFunnel(); renderOperational(); renderHonestyBanner(); renderByType(); renderByIntervention(); renderLedger(); renderPromisePanel(); syncFilterButtons(); }
 
   document.getElementById('gn-toggle').addEventListener('click', e=>{
     const btn = e.target.closest('button'); if(!btn) return;
@@ -420,10 +529,13 @@
   document.getElementById('search').addEventListener('input', e=>{ query = e.target.value.toLowerCase(); renderLedger(); });
 
   const types = ['all', ...new Set(AUDIT_LOG.map(e=>e.type))];
+  const typeCounts = {};
+  AUDIT_LOG.forEach(e => { typeCounts[e.type] = (typeCounts[e.type]||0) + 1; });
   const filtersEl = document.getElementById('filters');
   types.forEach(t=>{
     const b = document.createElement('button');
-    b.textContent = t==='all' ? 'All' : (typeLabels[t]||t);
+    const count = t==='all' ? AUDIT_LOG.length : (typeCounts[t]||0);
+    b.innerHTML = (t==='all' ? 'All' : (typeLabels[t]||t)) + ` <span style="opacity:.55">${count}</span>`;
     b.dataset.type = t;
     b.onclick = ()=>{ typeFilter=t; renderAll(); };
     filtersEl.appendChild(b);
